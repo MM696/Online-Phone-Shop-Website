@@ -1,6 +1,5 @@
 // src/components/Login.jsx
 import React, { useState } from 'react';
-import axios from '../axios';
 
 const Login = ({ onClose, setUser }) => {
   const [form, setForm] = useState({ email: '', password: '' });
@@ -13,14 +12,25 @@ const Login = ({ onClose, setUser }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+
     try {
-      const res = await axios.post('/login', form);
-      if (res.status === 200) {
-        alert('Login successful!');
-        setUser(res.data.user);
-        onClose();
+      const res = await fetch('https://online-phone-shop-website.onrender.com', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: form.email,
+          password: form.password,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setUser(data.user);  // pass user data to parent
+        onClose();           // close modal or dialog
       } else {
-        throw new Error('Login failed');
+        setError(data.message || 'Login failed');
       }
     } catch (err) {
       console.error(err);

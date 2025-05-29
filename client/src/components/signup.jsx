@@ -1,6 +1,5 @@
 // src/components/Signup.jsx
 import React, { useState } from 'react';
-import axios from '../axios';
 
 const SignUp = ({ onClose, switchToLogin }) => {
   const [form, setForm] = useState({ fullName: '', email: '', password: '' });
@@ -13,13 +12,22 @@ const SignUp = ({ onClose, switchToLogin }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+
     try {
-      const res = await axios.post('/register', form);
+      const res = await fetch('https://online-phone-shop-website.onrender.com', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+
+      const data = await res.json();
+
       if (res.status === 201) {
         alert('Registration successful! Please log in.');
         switchToLogin(); // Switch to login modal
       } else {
-        throw new Error('Unexpected response');
+        setError(data.message || 'Registration failed. Please try again.');
       }
     } catch (err) {
       console.error(err);

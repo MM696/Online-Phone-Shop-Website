@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './App.css';
 import SignUp from './components/signup';
 import Login from './components/login';
@@ -81,18 +81,46 @@ function App() {
     setCheckoutData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleCheckoutSubmit = (e) => {
+  const handleCheckoutSubmit = async (e) => {
     e.preventDefault();
-    alert(`Order placed successfully for ${checkoutData.fullName}`);
-    setCart([]);
-    setShowCheckout(false);
-    setCheckoutData({
-      fullName: '',
-      email: '',
-      phoneNumber: '',
-      address: '',
-      deliveryType: 'delivery',
-    });
+    try {
+      const response = await fetch('https://online-phone-shop-website.onrender.com', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...checkoutData,
+          items: cart.map(item => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+          })),
+          total: getTotal(),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(data.message || 'Order placed successfully!');
+        setCart([]);
+        setShowCheckout(false);
+        setCheckoutData({
+          fullName: '',
+          email: '',
+          phoneNumber: '',
+          address: '',
+          deliveryType: 'delivery',
+        });
+      } else {
+        alert(data.message || 'Something went wrong during checkout.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('An error occurred. Please try again.');
+    }
   };
 
   const getTotal = () =>
