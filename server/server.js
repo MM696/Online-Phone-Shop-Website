@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 const bcrypt = require('bcrypt');
 const { Pool } = require('pg');
 const path = require('path');
+const morgan = require('morgan');
 
 // Load environment variables
 dotenv.config();
@@ -11,13 +12,32 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
+// Allowed origins for CORS
+const allowedOrigins = [
+  'http://localhost:5173', // local development
+  'https://online-phone-shop-website-1.onrender.com' // deployed frontend URL
+];
+
+// CORS middleware
 app.use(cors({
-  origin: process.env.VITE_API_URL || 'http://localhost:5173',
+  origin: function (origin, callback) {
+    // allow requests with no origin (like curl, mobile apps, etc.)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      console.error(`❌ Blocked by CORS: ${origin}`);
+      return callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
+
+// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(morgan('dev'));
 
 // PostgreSQL Connection Setup
 if (!process.env.DATABASE_URL) {
@@ -32,8 +52,8 @@ const pool = new Pool({
 });
 
 pool.connect()
-  .then(() => console.log('Connected to PostgreSQL'))
-  .catch((err) => console.error('Database connection error:', err));
+  .then(() => console.log('✅ Connected to PostgreSQL'))
+  .catch((err) => console.error('❌ Database connection error:', err));
 
 // --- API ROUTES ---
 
@@ -132,5 +152,6 @@ app.use((req, res) => {
 
 // Start Server
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`🚀 Server is running on port ${PORT}`);
+  console.log('🔓 Allowed origins for CORS:', allowedOrigins);
 });
