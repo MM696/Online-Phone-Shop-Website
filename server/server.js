@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 const bcrypt = require('bcrypt');
 const { Pool } = require('pg');
 const path = require('path');
+const morgan = require('morgan');
 
 // Load environment variables
 dotenv.config();
@@ -11,29 +12,34 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// --- CORS Configuration ---
+// Allowed origins for CORS
 const allowedOrigins = [
-  'http://localhost:3000',
-  process.env.VITE_API_URL
-].filter(Boolean); // remove undefined/empty values
+  'http://localhost:5173', // local development
+  'https://online-phone-shop-website-1.onrender.com' // deployed frontend URL
+];
 
+// CORS middleware
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true); // Allow non-browser tools or same-origin
+    // allow requests with no origin (like curl, mobile apps, etc.)
+    if (!origin) return callback(null, true);
+
     if (allowedOrigins.includes(origin)) {
-      return callback(null, origin);
+      return callback(null, true);
     } else {
+      console.error(`❌ Blocked by CORS: ${origin}`);
       return callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true
 }));
 
-// --- Body Parsers ---
+// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(morgan('dev'));
 
-// --- PostgreSQL Connection ---
+// PostgreSQL Connection Setup
 if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL is not defined in environment variables');
 }
@@ -46,8 +52,8 @@ const pool = new Pool({
 });
 
 pool.connect()
-  .then(() => console.log('Connected to PostgreSQL'))
-  .catch((err) => console.error('Database connection error:', err));
+  .then(() => console.log('✅ Connected to PostgreSQL'))
+  .catch((err) => console.error('❌ Database connection error:', err));
 
 // --- API ROUTES ---
 
@@ -144,7 +150,8 @@ app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
-// --- Start Server ---
+// Start Server
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`🚀 Server is running on port ${PORT}`);
+  console.log('🔓 Allowed origins for CORS:', allowedOrigins);
 });
