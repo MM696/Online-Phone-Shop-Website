@@ -11,15 +11,30 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
+// --- CORS Configuration ---
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5173',
+  process.env.VITE_API_URL
+].filter(Boolean); // remove undefined/empty values
+
 app.use(cors({
-  origin: process.env.VITE_API_URL || 'http://localhost:3000',
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true); // Allow non-browser tools or same-origin
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, origin);
+    } else {
+      return callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
+
+// --- Body Parsers ---
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// PostgreSQL Connection Setup
+// --- PostgreSQL Connection ---
 if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL is not defined in environment variables');
 }
@@ -130,7 +145,7 @@ app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
-// Start Server
+// --- Start Server ---
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
