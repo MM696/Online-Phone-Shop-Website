@@ -28,10 +28,10 @@ pool.connect()
   .then(() => console.log("Connected to PostgreSQL"))
   .catch((err) => console.error("Database connection error:", err));
 
-// --- ROUTES ---
+// --- API ROUTES ---
 
 // Register
-app.post('/register', async (req, res) => {
+app.post('/api/register', async (req, res) => {
   const { fullName, email, password } = req.body;
   try {
     const existingUser = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
@@ -53,7 +53,7 @@ app.post('/register', async (req, res) => {
 });
 
 // Login
-app.post('/login', async (req, res) => {
+app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   try {
     const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
@@ -110,10 +110,19 @@ app.post('/api/checkout', async (req, res) => {
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, 'client/build')));
 
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+  // Specific frontend routes to be handled by React Router
+  const frontendRoutes = ['/', '/cart', '/login', '/register', '/checkout'];
+  frontendRoutes.forEach(route => {
+    app.get(route, (req, res) => {
+      res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+    });
   });
 }
+
+// 404 fallback for unmatched API routes
+app.use((req, res) => {
+  res.status(404).json({ message: 'Route not found' });
+});
 
 // Start Server
 app.listen(PORT, () => {
