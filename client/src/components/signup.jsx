@@ -15,7 +15,7 @@ const SignUp = ({ onClose, switchToLogin }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('https://online-phone-shop-website.onrender.com/api/register', form);
+      const res = await axios.post('/api/register', form);
       if (res.status === 201) {
         alert('Registration successful! Please log in.');
         switchToLogin(); // Switch to login modal
