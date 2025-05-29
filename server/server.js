@@ -20,6 +20,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // PostgreSQL Connection Setup
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL is not defined in environment variables');
+}
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.DATABASE_URL.includes('localhost')

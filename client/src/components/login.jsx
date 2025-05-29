@@ -14,7 +14,7 @@ const Login = ({ onClose, setUser }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('/login', form);
+      const res = await axios.post('/api/login', form);
       if (res.status === 200) {
         alert('Login successful!');
         setUser(res.data.user);
@@ -29,7 +29,17 @@ const Login = ({ onClose, setUser }) => {
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full relative">
+      {/* Close (X) button top-right */}
+      <button
+        onClick={onClose}
+        className="absolute top-0 right-0 mt-2 mr-2 text-2xl font-bold text-gray-600 hover:text-gray-900"
+        aria-label="Close"
+        type="button"
+      >
+        ×
+      </button>
+
       <h2 className="text-2xl font-semibold mb-4 text-center">Log In</h2>
       {error && (
         <p className="text-red-600 text-sm mb-4 text-center">{error}</p>

@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
+
 import './App.css';
 import SignUp from './components/signup';
 import Login from './components/login';
@@ -31,12 +33,10 @@ const phoneData = [
   },
 ];
 
-function App() {
+// Home page component rendering the main shop and cart UI
+function Home({ user, setUser }) {
   const [cart, setCart] = useState([]);
-  const [showLogin, setShowLogin] = useState(false);
-  const [showSignUp, setShowSignUp] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
-  const [user, setUser] = useState(null);
   const [checkoutData, setCheckoutData] = useState({
     fullName: '',
     email: '',
@@ -99,7 +99,7 @@ function App() {
     cart.reduce((total, item) => total + item.price * item.quantity, 0);
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
+    <div>
       {/* Navbar */}
       <nav className="flex flex-wrap items-center justify-between bg-gray-900 text-white p-5 sticky top-0 z-[1000]">
         <div className="text-xl font-bold">PhoneXpress</div>
@@ -117,8 +117,12 @@ function App() {
             <li onClick={handleLogout}>Account (Log Out)</li>
           ) : (
             <>
-              <li onClick={() => setShowSignUp(true)}>Sign Up</li>
-              <li onClick={() => setShowLogin(true)}>Log In</li>
+              <li>
+                <Link to="/signup" className="hover:underline">Sign Up</Link>
+              </li>
+              <li>
+                <Link to="/login" className="hover:underline">Log In</Link>
+              </li>
             </>
           )}
         </ul>
@@ -175,26 +179,6 @@ function App() {
         </div>
       </div>
 
-      {/* Login Modal */}
-      {showLogin && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[2000]">
-          <div className="bg-white p-5 rounded-lg w-[90%] max-w-xl relative shadow-lg h-[90%]">
-            <button className="absolute top-2 right-3 text-2xl" onClick={() => setShowLogin(false)}>×</button>
-            <Login onClose={() => setShowLogin(false)} setUser={setUser} />
-          </div>
-        </div>
-      )}
-
-      {/* Sign Up Modal */}
-      {showSignUp && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[2000]">
-          <div className="bg-white p-5 rounded-lg w-[90%] max-w-xl relative shadow-lg h-[90%]">
-            <button className="absolute top-2 right-3 text-2xl" onClick={() => setShowSignUp(false)}>×</button>
-            <SignUp onClose={() => setShowSignUp(false)} />
-          </div>
-        </div>
-      )}
-
       {/* Checkout Modal */}
       {showCheckout && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[2000]">
@@ -230,6 +214,60 @@ function App() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function App() {
+  const [user, setUser] = useState(null);
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home user={user} setUser={setUser} />} />
+        <Route path="/login" element={<LoginWrapper setUser={setUser} />} />
+        <Route path="/signup" element={<SignUpWrapper />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+// Wrappers to close modals and navigate after login/signup success
+
+function LoginWrapper({ setUser }) {
+  const navigate = useNavigate();
+
+  const handleLoginSuccess = (userData) => {
+    setUser(userData);
+    navigate('/');
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[2000]">
+      <div className="bg-white p-5 rounded-lg w-[90%] max-w-xl relative shadow-lg h-[90%]">
+        <Login onClose={() => navigate('/')} setUser={setUser} />
+      </div>
+    </div>
+  );
+}
+
+function SignUpWrapper() {
+  const navigate = useNavigate();
+
+  const switchToLogin = () => {
+    navigate('/login');
+  };
+
+  // THIS IS THE FIX: pass onClose to SignUp so close button works
+  const onClose = () => {
+    navigate('/');
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[2000]">
+      <div className="bg-white p-5 rounded-lg w-[90%] max-w-xl relative shadow-lg h-[90%]">
+        <SignUp onClose={onClose} switchToLogin={switchToLogin} />
+      </div>
     </div>
   );
 }

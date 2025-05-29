@@ -1,6 +1,7 @@
 // src/components/Signup.jsx
 import React, { useState } from 'react';
 import axios from '../axios';
+import { Link } from 'react-router-dom';
 
 const SignUp = ({ onClose, switchToLogin }) => {
   const [form, setForm] = useState({ fullName: '', email: '', password: '' });
@@ -14,7 +15,7 @@ const SignUp = ({ onClose, switchToLogin }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('/register', form);
+      const res = await axios.post('/api/register', form);
       if (res.status === 201) {
         alert('Registration successful! Please log in.');
         switchToLogin(); // Switch to login modal
@@ -23,12 +24,26 @@ const SignUp = ({ onClose, switchToLogin }) => {
       }
     } catch (err) {
       console.error(err);
-      setError('Registration failed. Please try again.');
+      if (err.response && err.response.data && err.response.data.message) {
+        setError(err.response.data.message);
+      } else {
+        setError('Registration failed. Please try again.');
+      }
     }
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full relative">
+      {/* Close (X) button top-right */}
+      <button
+        onClick={onClose}
+        className="absolute top-0 right-0 mt-2 mr-2 text-2xl font-bold text-gray-600 hover:text-gray-900"
+        aria-label="Close"
+        type="button"
+      >
+        ×
+      </button>
+
       <h2 className="text-2xl font-semibold mb-4 text-center">Sign Up</h2>
       {error && (
         <p className="text-red-600 text-sm mb-4 text-center">{error}</p>
@@ -80,12 +95,9 @@ const SignUp = ({ onClose, switchToLogin }) => {
 
       <p className="mt-4 text-sm text-center">
         Already have an account?{' '}
-        <button
-          onClick={switchToLogin}
-          className="text-blue-600 hover:underline font-medium"
-        >
+        <Link to="/login" className="text-blue-600 hover:underline font-medium">
           Log in
-        </button>
+        </Link>
       </p>
     </div>
   );
