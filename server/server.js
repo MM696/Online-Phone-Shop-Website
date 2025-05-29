@@ -108,13 +108,13 @@ app.post('/api/checkout', async (req, res) => {
 
 // --- Serve React Frontend in Production ---
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, 'client/build')));
+  app.use(express.static(path.join(__dirname, 'client/dist')));
 
   // Specific frontend routes to be handled by React Router
   const frontendRoutes = ['/', '/cart', '/login', '/register', '/checkout'];
   frontendRoutes.forEach(route => {
     app.get(route, (req, res) => {
-      res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+      res.sendFile(path.join(__dirname, 'client/dist', 'index.html'));
     });
   });
 }
