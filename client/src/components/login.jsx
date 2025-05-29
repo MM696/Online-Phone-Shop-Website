@@ -14,7 +14,7 @@ const Login = ({ onClose, setUser }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('/api/login', form);
+      const res = await axios.post('https://online-phone-shop-website.onrender.com/api/login', form);
       if (res.status === 200) {
         alert('Login successful!');
         setUser(res.data.user);
