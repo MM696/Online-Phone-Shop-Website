@@ -1,3 +1,4 @@
+// server.js
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
@@ -12,21 +13,24 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.VITE_API_URL || 'http://localhost:5173',
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // PostgreSQL Connection Setup
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL.includes("localhost")
+  ssl: process.env.DATABASE_URL.includes('localhost')
     ? false
     : { rejectUnauthorized: false },
 });
 
 pool.connect()
-  .then(() => console.log("Connected to PostgreSQL"))
-  .catch((err) => console.error("Database connection error:", err));
+  .then(() => console.log('Connected to PostgreSQL'))
+  .catch((err) => console.error('Database connection error:', err));
 
 // --- API ROUTES ---
 
@@ -110,7 +114,6 @@ app.post('/api/checkout', async (req, res) => {
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../client/dist')));
 
-  // Specific frontend routes to be handled by React Router
   const frontendRoutes = ['/', '/cart', '/login', '/register', '/checkout'];
   frontendRoutes.forEach(route => {
     app.get(route, (req, res) => {
@@ -126,5 +129,5 @@ app.use((req, res) => {
 
 // Start Server
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
