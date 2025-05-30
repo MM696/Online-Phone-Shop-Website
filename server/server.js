@@ -48,7 +48,7 @@ pool.connect()
 // --- API ROUTES ---
 
 // Register
-app.post('/api/register', async (req, res) => {
+app.post('/register', async (req, res) => {
   const { fullName, email, password } = req.body;
   try {
     const existingUser = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
@@ -68,7 +68,7 @@ app.post('/api/register', async (req, res) => {
 });
 
 // Login
-app.post('/api/login', async (req, res) => {
+app.post('/login', async (req, res) => {
   const { email, password } = req.body;
   try {
     const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
