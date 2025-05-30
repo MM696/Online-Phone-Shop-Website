@@ -11,37 +11,16 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// --- CORS CONFIG ---
-const allowedOrigins = [
-  'http://localhost:3000',
-  'http://localhost:5173',
-  'https://dazzling-halva-24bd54.netlify.app/'
-];
-
-const corsOptions = {
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true // optional: if you're using cookies or sessions
-};
-
-app.use(cors(corsOptions));
-
 // --- MIDDLEWARE ---
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(morgan('dev')); // If morgan is installed
+app.use(morgan('dev'));
 
 // --- DATABASE CONFIG ---
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL.includes('localhost')
-    ? false
-    : { rejectUnauthorized: false },
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
 
 pool.connect()
@@ -49,6 +28,7 @@ pool.connect()
   .catch((err) => console.error('Database connection error:', err));
 
 // --- API ROUTES ---
+
 // Register
 app.post('/register', async (req, res) => {
   const { fullName, email, password } = req.body;
@@ -57,11 +37,13 @@ app.post('/register', async (req, res) => {
     if (existingUser.rows.length > 0) {
       return res.status(400).json({ message: 'User already exists' });
     }
+
     const hashedPassword = await bcrypt.hash(password, 10);
     await pool.query(
       'INSERT INTO users (full_name, email, password) VALUES ($1, $2, $3)',
       [fullName, email, hashedPassword]
     );
+
     res.status(201).json({ message: 'User registered successfully' });
   } catch (err) {
     console.error('Registration error:', err);
@@ -75,13 +57,16 @@ app.post('/login', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     if (result.rows.length === 0) {
-      return res.status(400).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'User not found' });
     }
+
     const user = result.rows[0];
-    const match = await bcrypt.compare(password, user.password);
-    if (!match) {
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
       return res.status(401).json({ message: 'Incorrect password' });
     }
+
     res.status(200).json({
       message: 'Login successful',
       user: { id: user.id, fullName: user.full_name, email: user.email },
@@ -102,6 +87,7 @@ app.post('/api/checkout', async (req, res) => {
        RETURNING *`,
       [userId, fullName, email, phoneNumber, address, deliveryType]
     );
+
     res.status(200).json({
       message: 'Checkout successful',
       order: result.rows[0],
@@ -124,11 +110,12 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-// 404 fallback for unmatched routes
+// --- 404 Handler ---
 app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
+// --- Server Start ---
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
