@@ -225,8 +225,8 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home user={user} setUser={setUser} />} />
-        <Route path="/login" element={<LoginWrapper setUser={setUser} />} />
-        <Route path="/signup" element={<SignUpWrapper />} />
+        <Route path="/api/login" element={<LoginWrapper setUser={setUser} />} />
+        <Route path="/api/signup" element={<SignUpWrapper />} />
       </Routes>
     </BrowserRouter>
   );
