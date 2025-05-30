@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 5000;
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5173',
-  'https://online-phone-shop-website.onrender.com'
+  'https://dazzling-halva-24bd54.netlify.app/'
 ];
 
 const corsOptions = {
