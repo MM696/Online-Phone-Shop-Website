@@ -4,7 +4,7 @@ const dotenv = require('dotenv');
 const bcrypt = require('bcrypt');
 const { Pool } = require('pg');
 const path = require('path');
-const morgan = require('morgan'); // Only if installed
+const morgan = require('morgan');
 
 dotenv.config();
 
@@ -18,7 +18,7 @@ const allowedOrigins = [
   'https://online-phone-shop-website.onrender.com'
 ];
 
-app.use(cors({
+const corsOptions = {
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
@@ -26,13 +26,15 @@ app.use(cors({
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true
-}));
+  credentials: true // optional: if you're using cookies or sessions
+};
+
+app.use(cors(corsOptions));
 
 // --- MIDDLEWARE ---
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(morgan('dev')); // Comment this line if you didn’t install morgan
+app.use(morgan('dev')); // If morgan is installed
 
 // --- DATABASE CONFIG ---
 const pool = new Pool({
@@ -45,8 +47,8 @@ const pool = new Pool({
 pool.connect()
   .then(() => console.log('Connected to PostgreSQL'))
   .catch((err) => console.error('Database connection error:', err));
-// --- API ROUTES ---
 
+// --- API ROUTES ---
 // Register
 app.post('/register', async (req, res) => {
   const { fullName, email, password } = req.body;
